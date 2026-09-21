@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
+const authMiddleware = require('./middleware/authMiddleware');
 
 const app = express();
 connectDB();
@@ -11,6 +12,13 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => res.send('PropMart API running'));
+
+app.get('/api/protected', authMiddleware, (req, res) => {
+  res.status(200).json({
+    message: 'You have access to this protected route',
+    user: req.user
+  });
+});
 
 app.use('/api', authRoutes);
 
