@@ -6,6 +6,7 @@ const authRoutes = require('./routes/authRoutes');
 const authMiddleware = require('./middleware/authMiddleware');
 const propertyRoutes = require('./routes/propertyRoutes');
 const verificationRoutes = require('./routes/verificationRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
 
 const app = express();
 connectDB();
@@ -25,6 +26,7 @@ app.get('/api/protected', authMiddleware, (req, res) => {
 app.use('/api', authRoutes);
 app.use('/api', propertyRoutes);
 app.use('/api', verificationRoutes);
+app.use('/api', bookingRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
