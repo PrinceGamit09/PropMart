@@ -33,6 +33,40 @@ const approveProperty = async (req, res) => {
   }
 };
 
+const rejectProperty = async (req, res) => {
+  try {
+    const property = await Property.findById(req.params.id);
+
+    if (!property) {
+      return res.status(404).json({
+        message: 'Property not found'
+      });
+    }
+
+    if (property.status === 'Rejected') {
+      return res.status(400).json({
+        message: 'Property is already rejected'
+      });
+    }
+
+    property.status = 'Rejected';
+
+    await property.save();
+
+    res.status(200).json({
+      message: 'Property rejected successfully',
+      property
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
-  approveProperty
+  approveProperty,
+  rejectProperty
 };

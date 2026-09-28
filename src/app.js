@@ -11,6 +11,7 @@ const wishlistRoutes = require('./routes/wishlistRoutes');
 const inquiryRoutes = require('./routes/inquiryRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const sellerRoutes = require('./routes/sellerRoutes');
 
 const app = express();
 connectDB();
@@ -35,6 +36,7 @@ app.use('/api', wishlistRoutes);
 app.use('/api', inquiryRoutes);
 app.use('/api', reviewRoutes);
 app.use('/api', adminRoutes);
+app.use('/api', sellerRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

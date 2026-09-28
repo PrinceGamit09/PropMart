@@ -1,7 +1,8 @@
 const express = require('express');
 
 const {
-  approveProperty
+  approveProperty,
+  rejectProperty
 } = require('../controllers/verificationController');
 
 const authMiddleware = require('../middleware/authMiddleware');
@@ -14,6 +15,13 @@ router.put(
   authMiddleware,
   authorizeRoles('Admin'),
   approveProperty
+);
+
+router.put(
+  '/verification/:id/reject',
+  authMiddleware,
+  authorizeRoles('Admin'),
+  rejectProperty
 );
 
 module.exports = router;
