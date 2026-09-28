@@ -1,7 +1,8 @@
 const express = require('express');
 
 const {
-  getAllUsers
+  getAllUsers,
+  getAllProperties
 } = require('../controllers/adminController');
 
 const authMiddleware = require('../middleware/authMiddleware');
@@ -14,6 +15,13 @@ router.get(
   authMiddleware,
   authorizeRoles('Admin'),
   getAllUsers
+);
+
+router.get(
+  '/admin/properties',
+  authMiddleware,
+  authorizeRoles('Admin'),
+  getAllProperties
 );
 
 module.exports = router;
