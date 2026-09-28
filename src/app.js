@@ -8,6 +8,7 @@ const propertyRoutes = require('./routes/propertyRoutes');
 const verificationRoutes = require('./routes/verificationRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
 const wishlistRoutes = require('./routes/wishlistRoutes');
+const inquiryRoutes = require('./routes/inquiryRoutes');
 
 const app = express();
 connectDB();
@@ -29,6 +30,7 @@ app.use('/api', propertyRoutes);
 app.use('/api', verificationRoutes);
 app.use('/api', bookingRoutes);
 app.use('/api', wishlistRoutes);
+app.use('/api', inquiryRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
