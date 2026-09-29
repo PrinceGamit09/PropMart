@@ -11,16 +11,25 @@ import Register from './pages/Register';
 import Properties from './pages/Properties';
 import PropertyDetails from './pages/PropertyDetails';
 import Wishlist from './pages/Wishlist';
+import SellerBookings from './pages/SellerBookings';
+import AddProperty from './pages/AddProperty';
+import EditProperty from './pages/EditProperty';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminProperties from './pages/AdminProperties';
+import AdminUsers from './pages/AdminUsers';
 
 function App() {
   return (
     <AuthProvider>
-
       <BrowserRouter>
 
         <Navbar />
 
         <Routes>
+
+          {/* ================================
+              PUBLIC ROUTES
+          ================================= */}
 
           <Route
             path="/"
@@ -47,21 +56,16 @@ function App() {
             element={<PropertyDetails />}
           />
 
+          {/* ================================
+              BUYER ROUTES
+          ================================= */}
+
           <Route
             path="/wishlist"
             element={
               <RoleRoute allowedRoles={['Buyer']}>
                 <Wishlist />
               </RoleRoute>
-            }
-          />
-
-          <Route
-            path="/protected"
-            element={
-              <ProtectedRoute>
-                <h1>Protected Page</h1>
-              </ProtectedRoute>
             }
           />
 
@@ -74,28 +78,84 @@ function App() {
             }
           />
 
+          {/* ================================
+              SELLER ROUTES
+          ================================= */}
+
           <Route
             path="/seller"
             element={
               <RoleRoute allowedRoles={['Seller']}>
-                <h1>Seller Page</h1>
+                <SellerBookings />
               </RoleRoute>
             }
           />
 
           <Route
+            path="/seller/add-property"
+            element={
+              <RoleRoute allowedRoles={['Seller']}>
+                <AddProperty />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="/seller/edit-property/:id"
+            element={
+              <RoleRoute allowedRoles={['Seller']}>
+                <EditProperty />
+              </RoleRoute>
+            }
+          />
+
+          {/* ================================
+              ADMIN ROUTES
+          ================================= */}
+
+          <Route
             path="/admin"
             element={
               <RoleRoute allowedRoles={['Admin']}>
-                <h1>Admin Page</h1>
+                <AdminDashboard />
               </RoleRoute>
+            }
+          />
+
+          <Route
+            path="/admin/properties"
+            element={
+              <RoleRoute allowedRoles={['Admin']}>
+                <AdminProperties />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="/admin/users"
+            element={
+              <RoleRoute allowedRoles={['Admin']}>
+                <AdminUsers />
+              </RoleRoute>
+            }
+          />
+
+          {/* ================================
+              GENERAL PROTECTED ROUTE
+          ================================= */}
+
+          <Route
+            path="/protected"
+            element={
+              <ProtectedRoute>
+                <h1>Protected Page</h1>
+              </ProtectedRoute>
             }
           />
 
         </Routes>
 
       </BrowserRouter>
-
     </AuthProvider>
   );
 }
