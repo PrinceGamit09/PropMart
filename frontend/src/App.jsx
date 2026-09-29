@@ -10,6 +10,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Properties from './pages/Properties';
 import PropertyDetails from './pages/PropertyDetails';
+import Wishlist from './pages/Wishlist';
 
 function App() {
   return (
@@ -44,6 +45,15 @@ function App() {
           <Route
             path="/properties/:id"
             element={<PropertyDetails />}
+          />
+
+          <Route
+            path="/wishlist"
+            element={
+              <RoleRoute allowedRoles={['Buyer']}>
+                <Wishlist />
+              </RoleRoute>
+            }
           />
 
           <Route

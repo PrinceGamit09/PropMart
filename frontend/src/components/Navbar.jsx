@@ -21,6 +21,12 @@ function Navbar() {
           Properties
         </Link>
 
+        {isLoggedIn && user?.role === 'Buyer' && (
+          <Link to="/wishlist">
+            Wishlist
+          </Link>
+        )}
+
         <Link to="/">
           About
         </Link>
