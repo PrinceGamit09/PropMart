@@ -1929,3 +1929,170 @@ select {
     font-size: 42px;
   }
 }
+
+/* =========================
+   PROPERTY FILTERS
+========================= */
+
+.property-filters {
+  max-width: 1200px;
+  margin: 0 auto 45px;
+  padding: 22px;
+  display: grid;
+  grid-template-columns: 2fr 1.3fr 1fr 1fr;
+  gap: 16px;
+  background: #ffffff;
+  border: 1px solid #e4e2eb;
+  border-radius: 22px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.filter-group label {
+  color: #777780;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.filter-group input,
+.filter-group select {
+  width: 100%;
+  height: 46px;
+  padding: 0 13px;
+  border: 1px solid #e1dfe7;
+  border-radius: 11px;
+  outline: none;
+  background: #f8f7fa;
+  color: #17171a;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.filter-group input::placeholder {
+  color: #9999a2;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+  border-color: #a78bfa;
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.12);
+}
+
+.filter-group select {
+  cursor: pointer;
+}
+
+.filter-group select option {
+  background: #ffffff;
+  color: #17171a;
+}
+
+.filter-actions {
+  grid-column: span 4;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 3px;
+}
+
+.filter-search-button,
+.filter-reset-button {
+  height: 46px;
+  padding: 0 20px;
+  border-radius: 11px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.filter-search-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  background: #a78bfa;
+  color: #ffffff;
+}
+
+.filter-search-button:hover {
+  background: #8b5cf6;
+  transform: translateY(-2px);
+}
+
+.filter-search-button span {
+  font-size: 17px;
+}
+
+.filter-reset-button {
+  border: 1px solid #dedce4;
+  background: #ffffff;
+  color: #55555e;
+}
+
+.filter-reset-button:hover {
+  border-color: #a78bfa;
+  color: #8b5cf6;
+}
+
+
+/* =========================
+   FILTER RESPONSIVE
+========================= */
+
+@media (max-width: 1000px) {
+  .property-filters {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .filter-location {
+    grid-column: span 3;
+  }
+
+  .filter-actions {
+    grid-column: span 3;
+  }
+}
+
+@media (max-width: 700px) {
+  .property-filters {
+    grid-template-columns: 1fr 1fr;
+    padding: 18px;
+  }
+
+  .filter-location {
+    grid-column: span 2;
+  }
+
+  .filter-actions {
+    grid-column: span 2;
+    justify-content: stretch;
+  }
+
+  .filter-search-button,
+  .filter-reset-button {
+    flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .property-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-location,
+  .filter-actions {
+    grid-column: auto;
+  }
+
+  .filter-actions {
+    flex-direction: column;
+  }
+}
