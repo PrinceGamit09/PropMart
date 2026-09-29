@@ -12,9 +12,19 @@ function Navbar() {
       </Link>
 
       <div className="navbar-center">
-        <Link to="/">Discover</Link>
-        <Link to="/">Properties</Link>
-        <Link to="/">About</Link>
+
+        <Link to="/">
+          Discover
+        </Link>
+
+        <Link to="/properties">
+          Properties
+        </Link>
+
+        <Link to="/">
+          About
+        </Link>
+
       </div>
 
       <div className="navbar-actions">
@@ -34,11 +44,17 @@ function Navbar() {
           </>
         ) : (
           <>
-            <Link to="/login" className="login-link">
+            <Link
+              to="/login"
+              className="login-link"
+            >
               Log in
             </Link>
 
-            <Link to="/register" className="signup-button">
+            <Link
+              to="/register"
+              className="signup-button"
+            >
               Get started
             </Link>
           </>
