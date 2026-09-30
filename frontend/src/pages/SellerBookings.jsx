@@ -69,7 +69,7 @@ function SellerBookings() {
 
     try {
       await api.put(
-        `/seller/bookings/${bookingId}/confirm`
+        `/bookings/${bookingId}/confirm`
       );
 
       setMessage(
