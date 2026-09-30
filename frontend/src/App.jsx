@@ -11,6 +11,7 @@ import Register from './pages/Register';
 import Properties from './pages/Properties';
 import PropertyDetails from './pages/PropertyDetails';
 import Wishlist from './pages/Wishlist';
+import BuyerDashboard from './pages/BuyerDashboard';
 import SellerBookings from './pages/SellerBookings';
 import AddProperty from './pages/AddProperty';
 import EditProperty from './pages/EditProperty';
@@ -73,7 +74,7 @@ function App() {
             path="/buyer"
             element={
               <RoleRoute allowedRoles={['Buyer']}>
-                <h1>Buyer Page</h1>
+                <BuyerDashboard />
               </RoleRoute>
             }
           />

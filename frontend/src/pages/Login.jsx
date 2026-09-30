@@ -42,7 +42,7 @@ function Login() {
       } else if (user.role === 'Seller') {
         navigate('/seller');
       } else {
-        navigate('/');
+        navigate('/buyer');
       }
 
     } catch (error) {
