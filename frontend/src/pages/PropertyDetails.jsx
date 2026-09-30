@@ -16,6 +16,10 @@ function PropertyDetails() {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingMessage, setBookingMessage] = useState('');
   const [bookingError, setBookingError] = useState('');
+  const [wishlisted, setWishlisted] = useState(false);
+  const [wishlistItemId, setWishlistItemId] = useState(null);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [wishlistError, setWishlistError] = useState('');
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -37,6 +41,75 @@ function PropertyDetails() {
 
     fetchProperty();
   }, [id]);
+
+  useEffect(() => {
+    const fetchWishlistState = async () => {
+      if (!isLoggedIn || user?.role !== 'Buyer') {
+        setWishlisted(false);
+        setWishlistItemId(null);
+        return;
+      }
+
+      try {
+        const response = await api.get('/wishlist');
+        const wishlist = response.data.wishlist || response.data;
+        const wishlistItem = wishlist.find((item) => {
+          const wishlistProperty = item.property?._id || item.property;
+
+          return wishlistProperty === id;
+        });
+
+        setWishlisted(!!wishlistItem);
+        setWishlistItemId(wishlistItem?._id || null);
+      } catch (error) {
+        setWishlistError(
+          error.response?.data?.message ||
+          'Unable to load wishlist status.'
+        );
+      }
+    };
+
+    fetchWishlistState();
+  }, [id, isLoggedIn, user]);
+
+  const handleWishlist = async () => {
+    setWishlistError('');
+
+    if (!isLoggedIn) {
+      setWishlistError('Please log in to save properties.');
+      return;
+    }
+
+    if (user?.role !== 'Buyer') {
+      setWishlistError('Only buyers can save properties.');
+      return;
+    }
+
+    setWishlistLoading(true);
+
+    try {
+      if (wishlisted) {
+        await api.delete(`/wishlist/${wishlistItemId}`);
+        setWishlisted(false);
+        setWishlistItemId(null);
+      } else {
+        const response = await api.post('/wishlist', {
+          property: id
+        });
+        const wishlist = response.data.wishlist || response.data;
+
+        setWishlisted(true);
+        setWishlistItemId(wishlist._id);
+      }
+    } catch (error) {
+      setWishlistError(
+        error.response?.data?.message ||
+        'Unable to update wishlist.'
+      );
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
 
   const handleBooking = async (event) => {
     event.preventDefault();
@@ -114,8 +187,13 @@ function PropertyDetails() {
             {property.propertyType}
           </span>
 
-          <button className="property-details-heart">
-            ♡
+          <button
+            className="property-details-heart"
+            onClick={handleWishlist}
+            disabled={wishlistLoading}
+            type="button"
+          >
+            {wishlisted ? '♥' : '♡'}
           </button>
 
           <div className="property-details-image-text">
@@ -188,6 +266,12 @@ function PropertyDetails() {
             </div>
           )}
 
+          {wishlistError && (
+            <div className="booking-error">
+              {wishlistError}
+            </div>
+          )}
+
           <div className="property-details-actions">
 
             <button
@@ -217,8 +301,13 @@ function PropertyDetails() {
               <span>↗</span>
             </button>
 
-            <button className="property-secondary-button">
-              ♡ Save
+              <button
+                className="property-secondary-button"
+                onClick={handleWishlist}
+                disabled={wishlistLoading}
+                type="button"
+              >
+                {wishlisted ? '♥ Saved' : '♡ Save'}
             </button>
 
           </div>
