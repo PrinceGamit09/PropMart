@@ -29,6 +29,24 @@ function PropertyDetails() {
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewMessage, setReviewMessage] = useState('');
   const [reviewError, setReviewError] = useState('');
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [reviewsError, setReviewsError] = useState('');
+
+  const averageRating = reviews.length
+    ? Math.round(
+        (reviews.reduce(
+          (total, review) => total + Number(review.rating || 0),
+          0
+        ) / reviews.length) * 10
+      ) / 10
+    : 0;
+
+  const ownReview = reviews.find((review) => {
+    const buyerId = review.buyer?._id || review.buyer;
+
+    return buyerId === user?.id;
+  });
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -49,6 +67,39 @@ function PropertyDetails() {
     };
 
     fetchProperty();
+  }, [id]);
+
+  useEffect(() => {
+    if (ownReview) {
+      setReviewRating(String(ownReview.rating));
+      setReviewText(
+        ownReview.comment === String(ownReview.rating)
+          ? ''
+          : ownReview.comment || ''
+      );
+    }
+  }, [ownReview]);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      setReviewsLoading(true);
+      setReviewsError('');
+
+      try {
+        const response = await api.get(`/reviews/${id}`);
+
+        setReviews(response.data.reviews || response.data);
+      } catch (error) {
+        setReviewsError(
+          error.response?.data?.message ||
+          'Unable to load reviews.'
+        );
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+
+    fetchReviews();
   }, [id]);
 
   useEffect(() => {
@@ -216,13 +267,30 @@ function PropertyDetails() {
     setReviewLoading(true);
 
     try {
-      await api.post('/reviews', {
-        property: property._id,
+      const reviewData = {
         rating: Number(reviewRating),
         comment: reviewText
-      });
+      };
 
-      setReviewMessage('Thanks for sharing your review.');
+      if (ownReview) {
+        await api.put(`/reviews/${ownReview._id}`, reviewData);
+      } else {
+        await api.post('/reviews', {
+          property: property._id,
+          ...reviewData
+        });
+      }
+
+      const reviewsResponse = await api.get(`/reviews/${id}`);
+      setReviews(
+        reviewsResponse.data.reviews || reviewsResponse.data
+      );
+
+      setReviewMessage(
+        ownReview
+          ? 'Your review was updated successfully.'
+          : 'Thanks for sharing your review.'
+      );
       setReviewText('');
       setReviewRating('5');
     } catch (error) {
@@ -264,6 +332,15 @@ function PropertyDetails() {
 
       <section className="property-details-hero">
 
+        <Link
+          to="/properties"
+          className="property-details-back-link"
+        >
+          ← Back to properties
+        </Link>
+
+        <div className="property-details-hero-grid">
+
         <div className="property-details-image">
 
           <span className="property-details-type">
@@ -302,6 +379,19 @@ function PropertyDetails() {
           <div className="property-details-price">
             ₹{property.price?.toLocaleString('en-IN')}
           </div>
+
+          {!reviewsLoading && reviews.length > 0 && (
+            <div className="property-details-rating">
+              Rating - {averageRating} ({reviews.length}{' '}
+              {reviews.length === 1 ? 'review' : 'reviews'})
+            </div>
+          )}
+
+          {!reviewsLoading && reviews.length === 0 && (
+            <div className="property-details-rating">
+              No reviews yet
+            </div>
+          )}
 
           <div className="property-details-stats">
 
@@ -444,102 +534,169 @@ function PropertyDetails() {
 
         </div>
 
+        </div>
+
       </section>
 
       <section className="property-description-section">
 
-        <div className="property-description">
+        <div className="property-information-layout">
 
-          <span>
-            ABOUT THIS PROPERTY
-          </span>
+          <div className="property-description">
 
-          <h2>
-            Made for the way
-            <br />
-            <em>you live.</em>
-          </h2>
+            <span>
+              ABOUT THIS PROPERTY
+            </span>
 
-          <p>
-            {property.description ||
-              'A beautiful property waiting for its next owner.'}
-          </p>
+            <h2>
+              Made for the way
+              <br />
+              <em>you live.</em>
+            </h2>
+
+            <p>
+              {property.description ||
+                'A beautiful property waiting for its next owner.'}
+            </p>
+
+            {property.amenities?.length > 0 && (
+              <div className="property-amenities">
+                <span>
+                  AMENITIES
+                </span>
+
+                <div className="property-amenity-list">
+                  {property.amenities.map((amenity) => (
+                    <span key={amenity}>
+                      {amenity}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          </div>
+
+          <div className="property-snapshot-card">
+
+            <span>
+              PROPERTY SNAPSHOT
+            </span>
+
+            <div className="property-snapshot-grid">
+              <div>
+                <small>TYPE</small>
+                <strong>{property.propertyType}</strong>
+              </div>
+
+              <div>
+                <small>AREA</small>
+                <strong>{property.area} sq.ft</strong>
+              </div>
+
+              <div>
+                <small>BEDROOMS</small>
+                <strong>{property.bedrooms || 0}</strong>
+              </div>
+
+              <div>
+                <small>BATHROOMS</small>
+                <strong>{property.bathrooms || 0}</strong>
+              </div>
+
+              <div>
+                <small>STATUS</small>
+                <strong>{property.status}</strong>
+              </div>
+            </div>
+
+          </div>
 
         </div>
 
-        <div className="property-info-card">
+        <section className="property-reviews-section">
 
-          <div>
-            <span>
-              PROPERTY TYPE
-            </span>
+          <div className="property-section-heading">
+            <div>
+              <span>REVIEWS</span>
+              <h2>What people think about this space.</h2>
+            </div>
 
-            <strong>
-              {property.propertyType}
-            </strong>
+            {!reviewsLoading && reviews.length > 0 && (
+              <strong>
+                {averageRating} <small>/ 5</small>
+              </strong>
+            )}
           </div>
 
-          <div>
-            <span>
-              AREA
-            </span>
+          {reviewsLoading && (
+            <p className="property-section-message">
+              Loading reviews...
+            </p>
+          )}
 
-            <strong>
-              {property.area} sq.ft
-            </strong>
-          </div>
+          {reviewsError && (
+            <p className="property-section-message property-section-error">
+              {reviewsError}
+            </p>
+          )}
 
-          <div>
-            <span>
-              STATUS
-            </span>
+          {!reviewsLoading && !reviewsError && reviews.length === 0 && (
+            <p className="property-section-message">
+              No reviews yet. Be the first to share your experience.
+            </p>
+          )}
 
-            <strong>
-              {property.status}
-            </strong>
-          </div>
+          {!reviewsLoading && !reviewsError && reviews.length > 0 && (
+            <div className="property-reviews-list">
+              {reviews.map((review) => (
+                <article
+                  className="property-review-item"
+                  key={review._id}
+                >
+                  <div>
+                    <strong>
+                      {review.buyer?.name || 'Anonymous buyer'}
+                    </strong>
 
-        </div>
+                    <span>
+                      Rating {review.rating}
+                    </span>
+                  </div>
+
+                  <p>
+                    {review.comment}
+                  </p>
+
+                </article>
+              ))}
+            </div>
+          )}
+
+        </section>
 
         {isLoggedIn && user?.role === 'Buyer' && (
-          <div className="property-info-card">
+          <>
+            <section className="property-contact-section">
 
-            <div>
-              <span>
-                CONTACT SELLER
-              </span>
-
-              {inquiryMessage && (
-                <div className="booking-success">
-                  {inquiryMessage}
-                </div>
-              )}
-
-              {inquiryError && (
-                <div className="booking-error">
-                  {inquiryError}
-                </div>
-              )}
+              <div>
+                <span>CONTACT SELLER</span>
+                <h2>Have a question about this property?</h2>
+              </div>
 
               <form
-                className="booking-form"
+                className="property-contact-form"
                 onSubmit={handleInquiry}
               >
-                <div className="form-group">
-                  <label htmlFor="inquiryMessage">
-                    Your message
-                  </label>
-
-                  <textarea
-                    id="inquiryMessage"
-                    value={inquiryText}
-                    onChange={(event) =>
-                      setInquiryText(event.target.value)
-                    }
-                    placeholder="Ask the seller a question..."
-                    required
-                  />
-                </div>
+                <textarea
+                  id="inquiryMessage"
+                  value={inquiryText}
+                  onChange={(event) =>
+                    setInquiryText(event.target.value)
+                  }
+                  placeholder="Your message..."
+                  required
+                />
 
                 <button
                   type="submit"
@@ -550,77 +707,87 @@ function PropertyDetails() {
                   {!inquiryLoading && <span>↗</span>}
                 </button>
               </form>
-            </div>
 
-            <div>
-              <span>
-                SHARE YOUR EXPERIENCE
-              </span>
-
-              {reviewMessage && (
-                <div className="booking-success">
-                  {reviewMessage}
-                </div>
+              {(inquiryMessage || inquiryError) && (
+                <p className={inquiryError ? 'booking-error' : 'booking-success'}>
+                  {inquiryError || inquiryMessage}
+                </p>
               )}
 
-              {reviewError && (
-                <div className="booking-error">
-                  {reviewError}
-                </div>
-              )}
+            </section>
+
+            <section
+              className="property-review-form-section"
+              id="property-review-form"
+            >
+
+              <div>
+                <span>SHARE YOUR EXPERIENCE</span>
+                <h2>How was your experience with this property?</h2>
+              </div>
 
               <form
-                className="booking-form"
+                className="property-review-form"
                 onSubmit={handleReview}
               >
-                <div className="form-group">
-                  <label htmlFor="reviewRating">
-                    Rating
-                  </label>
+                <label htmlFor="reviewRating">
+                  Rating
+                </label>
 
-                  <select
-                    id="reviewRating"
-                    value={reviewRating}
-                    onChange={(event) =>
-                      setReviewRating(event.target.value)
-                    }
-                  >
-                    <option value="5">5 - Excellent</option>
-                    <option value="4">4 - Very good</option>
-                    <option value="3">3 - Good</option>
-                    <option value="2">2 - Fair</option>
-                    <option value="1">1 - Poor</option>
-                  </select>
-                </div>
+                <select
+                  id="reviewRating"
+                  value={reviewRating}
+                  onChange={(event) =>
+                    setReviewRating(event.target.value)
+                  }
+                >
+                  <option value="5">5 - Excellent</option>
+                  <option value="4.5">4.5 - Excellent</option>
+                  <option value="4">4 - Very good</option>
+                  <option value="3.5">3.5 - Good</option>
+                  <option value="3">3 - Good</option>
+                  <option value="2.5">2.5 - Fair</option>
+                  <option value="2">2 - Fair</option>
+                  <option value="1.5">1.5 - Poor</option>
+                  <option value="1">1 - Poor</option>
+                </select>
 
-                <div className="form-group">
-                  <label htmlFor="reviewText">
-                    Review
-                  </label>
+                <label htmlFor="reviewText">
+                  Review
+                </label>
 
-                  <textarea
-                    id="reviewText"
-                    value={reviewText}
-                    onChange={(event) =>
-                      setReviewText(event.target.value)
-                    }
-                    placeholder="Share your thoughts..."
-                    required
-                  />
-                </div>
+                <textarea
+                  id="reviewText"
+                  value={reviewText}
+                  onChange={(event) =>
+                    setReviewText(event.target.value)
+                  }
+                  placeholder="Share your thoughts..."
+                  required
+                />
 
                 <button
                   type="submit"
                   className="booking-submit-button"
                   disabled={reviewLoading}
                 >
-                  {reviewLoading ? 'Submitting...' : 'Submit review'}
+                  {reviewLoading
+                    ? 'Saving...'
+                    : ownReview
+                      ? 'Update review'
+                      : 'Submit review'}
                   {!reviewLoading && <span>↗</span>}
                 </button>
               </form>
-            </div>
 
-          </div>
+              {(reviewMessage || reviewError) && (
+                <p className={reviewError ? 'booking-error' : 'booking-success'}>
+                  {reviewError || reviewMessage}
+                </p>
+              )}
+
+            </section>
+          </>
         )}
 
       </section>
