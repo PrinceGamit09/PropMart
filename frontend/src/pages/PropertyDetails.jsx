@@ -20,6 +20,15 @@ function PropertyDetails() {
   const [wishlistItemId, setWishlistItemId] = useState(null);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [wishlistError, setWishlistError] = useState('');
+  const [inquiryMessage, setInquiryMessage] = useState('');
+  const [inquiryText, setInquiryText] = useState('');
+  const [inquiryLoading, setInquiryLoading] = useState(false);
+  const [inquiryError, setInquiryError] = useState('');
+  const [reviewRating, setReviewRating] = useState('5');
+  const [reviewText, setReviewText] = useState('');
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewMessage, setReviewMessage] = useState('');
+  const [reviewError, setReviewError] = useState('');
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -149,6 +158,80 @@ function PropertyDetails() {
       );
     } finally {
       setBookingLoading(false);
+    }
+  };
+
+  const handleInquiry = async (event) => {
+    event.preventDefault();
+
+    setInquiryError('');
+    setInquiryMessage('');
+
+    if (!isLoggedIn) {
+      setInquiryError('Please log in to contact the seller.');
+      return;
+    }
+
+    if (user?.role !== 'Buyer') {
+      setInquiryError('Only buyers can contact sellers.');
+      return;
+    }
+
+    setInquiryLoading(true);
+
+    try {
+      await api.post('/inquiries', {
+        property: property._id,
+        message: inquiryText
+      });
+
+      setInquiryMessage('Your inquiry was sent to the seller.');
+      setInquiryText('');
+    } catch (error) {
+      setInquiryError(
+        error.response?.data?.message ||
+        'Unable to send your inquiry.'
+      );
+    } finally {
+      setInquiryLoading(false);
+    }
+  };
+
+  const handleReview = async (event) => {
+    event.preventDefault();
+
+    setReviewError('');
+    setReviewMessage('');
+
+    if (!isLoggedIn) {
+      setReviewError('Please log in to review this property.');
+      return;
+    }
+
+    if (user?.role !== 'Buyer') {
+      setReviewError('Only buyers can review properties.');
+      return;
+    }
+
+    setReviewLoading(true);
+
+    try {
+      await api.post('/reviews', {
+        property: property._id,
+        rating: Number(reviewRating),
+        comment: reviewText
+      });
+
+      setReviewMessage('Thanks for sharing your review.');
+      setReviewText('');
+      setReviewRating('5');
+    } catch (error) {
+      setReviewError(
+        error.response?.data?.message ||
+        'Unable to submit your review.'
+      );
+    } finally {
+      setReviewLoading(false);
     }
   };
 
@@ -417,6 +500,128 @@ function PropertyDetails() {
           </div>
 
         </div>
+
+        {isLoggedIn && user?.role === 'Buyer' && (
+          <div className="property-info-card">
+
+            <div>
+              <span>
+                CONTACT SELLER
+              </span>
+
+              {inquiryMessage && (
+                <div className="booking-success">
+                  {inquiryMessage}
+                </div>
+              )}
+
+              {inquiryError && (
+                <div className="booking-error">
+                  {inquiryError}
+                </div>
+              )}
+
+              <form
+                className="booking-form"
+                onSubmit={handleInquiry}
+              >
+                <div className="form-group">
+                  <label htmlFor="inquiryMessage">
+                    Your message
+                  </label>
+
+                  <textarea
+                    id="inquiryMessage"
+                    value={inquiryText}
+                    onChange={(event) =>
+                      setInquiryText(event.target.value)
+                    }
+                    placeholder="Ask the seller a question..."
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="booking-submit-button"
+                  disabled={inquiryLoading}
+                >
+                  {inquiryLoading ? 'Sending...' : 'Send inquiry'}
+                  {!inquiryLoading && <span>↗</span>}
+                </button>
+              </form>
+            </div>
+
+            <div>
+              <span>
+                SHARE YOUR EXPERIENCE
+              </span>
+
+              {reviewMessage && (
+                <div className="booking-success">
+                  {reviewMessage}
+                </div>
+              )}
+
+              {reviewError && (
+                <div className="booking-error">
+                  {reviewError}
+                </div>
+              )}
+
+              <form
+                className="booking-form"
+                onSubmit={handleReview}
+              >
+                <div className="form-group">
+                  <label htmlFor="reviewRating">
+                    Rating
+                  </label>
+
+                  <select
+                    id="reviewRating"
+                    value={reviewRating}
+                    onChange={(event) =>
+                      setReviewRating(event.target.value)
+                    }
+                  >
+                    <option value="5">5 - Excellent</option>
+                    <option value="4">4 - Very good</option>
+                    <option value="3">3 - Good</option>
+                    <option value="2">2 - Fair</option>
+                    <option value="1">1 - Poor</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="reviewText">
+                    Review
+                  </label>
+
+                  <textarea
+                    id="reviewText"
+                    value={reviewText}
+                    onChange={(event) =>
+                      setReviewText(event.target.value)
+                    }
+                    placeholder="Share your thoughts..."
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="booking-submit-button"
+                  disabled={reviewLoading}
+                >
+                  {reviewLoading ? 'Submitting...' : 'Submit review'}
+                  {!reviewLoading && <span>↗</span>}
+                </button>
+              </form>
+            </div>
+
+          </div>
+        )}
 
       </section>
 
