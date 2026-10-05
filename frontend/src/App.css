@@ -11,6 +11,7 @@
   &:hover {
     border-color: var(--accent-border);
   }
+
   &:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
@@ -78,6 +79,7 @@
   & > div {
     flex: 1 1 0;
     padding: 32px;
+
     @media (max-width: 1024px) {
       padding: 24px 20px;
     }
@@ -130,6 +132,7 @@
     &:hover {
       box-shadow: var(--shadow);
     }
+
     .button-icon {
       height: 18px;
       width: 18px;
@@ -156,6 +159,7 @@
 #spacer {
   height: 88px;
   border-top: 1px solid var(--border);
+
   @media (max-width: 1024px) {
     height: 48px;
   }
@@ -177,8 +181,421 @@
     left: 0;
     border-left-color: var(--border);
   }
+
   &::after {
     right: 0;
     border-right-color: var(--border);
+  }
+}
+
+
+/* =========================================
+   PROPMART - ABOUT PAGE
+========================================= */
+
+.about-page {
+  min-height: 100vh;
+  background: #f5f4fa;
+  color: #111116;
+}
+
+
+/* =========================================
+   ABOUT HERO
+========================================= */
+
+.about-hero {
+  min-height: 72vh;
+  display: flex;
+  align-items: center;
+  padding: 120px 7vw;
+
+  background:
+    radial-gradient(
+      circle at 78% 35%,
+      rgba(139, 92, 246, 0.2),
+      transparent 32%
+    ),
+    #09090b;
+
+  color: #ffffff;
+}
+
+.about-hero-content {
+  max-width: 900px;
+}
+
+.about-eyebrow {
+  display: inline-flex;
+  align-items: center;
+
+  margin-bottom: 30px;
+  padding: 8px 14px;
+
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  border-radius: 999px;
+
+  color: #a78bfa;
+
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.about-hero h1 {
+  margin: 0;
+
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(60px, 8vw, 120px);
+  line-height: 0.92;
+
+  letter-spacing: -0.06em;
+  font-weight: 700;
+}
+
+.about-hero h1 em {
+  color: #a78bfa;
+  font-style: normal;
+}
+
+.about-hero p {
+  max-width: 620px;
+  margin-top: 38px;
+
+  color: #a7a5b0;
+
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+
+/* =========================================
+   ABOUT STORY
+========================================= */
+
+.about-story {
+  display: grid;
+  grid-template-columns: 0.7fr 1.3fr;
+  gap: 80px;
+
+  padding: 130px 7vw;
+
+  background: #f5f4fa;
+}
+
+.about-story-label {
+  color: #8b5cf6;
+
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.about-story-content {
+  max-width: 800px;
+}
+
+.about-story-content h2 {
+  margin: 0;
+
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(48px, 6vw, 82px);
+  line-height: 0.98;
+
+  letter-spacing: -0.055em;
+}
+
+.about-story-content h2 em {
+  color: #8b5cf6;
+  font-style: normal;
+}
+
+.about-story-content p {
+  max-width: 680px;
+  margin-top: 35px;
+
+  color: #666572;
+
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+
+/* =========================================
+   ABOUT FEATURES
+========================================= */
+
+.about-features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+
+  padding: 0 7vw 130px;
+
+  background: #f5f4fa;
+}
+
+.about-feature-card {
+  min-height: 280px;
+  padding: 36px;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e2ed;
+  border-radius: 28px;
+
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.about-feature-card:hover {
+  transform: translateY(-6px);
+
+  border-color: #c4b5fd;
+
+  box-shadow:
+    0 18px 50px rgba(89, 57, 145, 0.1);
+}
+
+.about-feature-card span {
+  display: block;
+
+  margin-bottom: 55px;
+
+  color: #8b5cf6;
+
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.about-feature-card h3 {
+  margin: 0 0 14px;
+
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 30px;
+
+  letter-spacing: -0.03em;
+}
+
+.about-feature-card p {
+  margin: 0;
+
+  color: #777582;
+
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+
+/* =========================================
+   ABOUT BOTTOM CTA
+========================================= */
+
+.about-bottom {
+  position: relative;
+  overflow: hidden;
+
+  padding: 120px 7vw;
+
+  background:
+    radial-gradient(
+      circle at 75% 50%,
+      rgba(139, 92, 246, 0.28),
+      transparent 35%
+    ),
+    #09090b;
+
+  color: #ffffff;
+}
+
+.about-bottom span {
+  display: block;
+
+  margin-bottom: 25px;
+
+  color: #a78bfa;
+
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.about-bottom h2 {
+  margin: 0;
+
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(55px, 7vw, 105px);
+  line-height: 0.95;
+
+  letter-spacing: -0.06em;
+}
+
+
+/* =========================================
+   ABOUT RESPONSIVE
+========================================= */
+
+@media (max-width: 900px) {
+
+  .about-hero {
+    min-height: 65vh;
+    padding: 100px 6vw;
+  }
+
+  .about-story {
+    grid-template-columns: 1fr;
+    gap: 30px;
+
+    padding: 90px 6vw;
+  }
+
+  .about-features {
+    grid-template-columns: 1fr;
+
+    padding: 0 6vw 90px;
+  }
+
+  .about-feature-card {
+    min-height: auto;
+  }
+
+  .about-feature-card span {
+    margin-bottom: 35px;
+  }
+
+  .about-bottom {
+    padding: 90px 6vw;
+  }
+
+}
+
+
+@media (max-width: 600px) {
+
+  .about-hero {
+    min-height: 70vh;
+    padding: 90px 24px;
+  }
+
+  .about-hero h1 {
+    font-size: 58px;
+  }
+
+  .about-hero p {
+    font-size: 16px;
+  }
+
+  .about-story {
+    padding: 75px 24px;
+  }
+
+  .about-story-content h2 {
+    font-size: 48px;
+  }
+
+  .about-features {
+    padding: 0 24px 75px;
+  }
+
+  .about-feature-card {
+    padding: 28px;
+    border-radius: 22px;
+  }
+
+  .about-bottom {
+    padding: 80px 24px;
+  }
+
+  .about-bottom h2 {
+    font-size: 52px;
+  }
+
+}
+/* =========================================
+   PROPMART - PROPERTY IMAGE UPLOAD
+========================================= */
+
+.property-image-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.property-image-preview {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  border: 1px solid #e5e2ed;
+  border-radius: 18px;
+  background: #f5f4fa;
+}
+
+.property-image-preview img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.property-image-preview span {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(9, 9, 11, 0.75);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.property-image-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(9, 9, 11, 0.8);
+  color: #ffffff;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 2;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.property-image-remove:hover {
+  background: #8b5cf6;
+  transform: scale(1.08);
+}
+
+.property-image-count {
+  margin-top: 10px;
+  color: #777582;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .property-image-preview-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .property-image-preview-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

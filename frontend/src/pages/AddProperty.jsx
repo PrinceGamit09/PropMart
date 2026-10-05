@@ -17,6 +17,7 @@ function AddProperty() {
     amenities: ''
   });
 
+  const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -30,6 +31,68 @@ function AddProperty() {
     });
   };
 
+  const handleImageChange = (event) => {
+    const selectedFiles = Array.from(event.target.files);
+
+    setError('');
+
+    if (selectedFiles.length === 0) {
+      return;
+    }
+
+    if (images.length + selectedFiles.length > 5) {
+      setError('You can upload a maximum of 5 images.');
+      event.target.value = '';
+      return;
+    }
+
+    const allowedTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/webp'
+    ];
+
+    const invalidFile = selectedFiles.find(
+      (file) => !allowedTypes.includes(file.type)
+    );
+
+    if (invalidFile) {
+      setError(
+        'Only JPG, JPEG, PNG, and WEBP images are allowed.'
+      );
+      event.target.value = '';
+      return;
+    }
+
+    const oversizedFile = selectedFiles.find(
+      (file) => file.size > 5 * 1024 * 1024
+    );
+
+    if (oversizedFile) {
+      setError(
+        'Each image must be smaller than 5 MB.'
+      );
+      event.target.value = '';
+      return;
+    }
+
+    setImages((currentImages) => [
+      ...currentImages,
+      ...selectedFiles
+    ]);
+
+    event.target.value = '';
+  };
+
+  const removeImage = (indexToRemove) => {
+    setImages((currentImages) =>
+      currentImages.filter(
+        (_, index) => index !== indexToRemove
+      )
+    );
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -38,26 +101,70 @@ function AddProperty() {
     setLoading(true);
 
     try {
-      const propertyData = {
-        title: formData.title,
-        location: formData.location,
-        price: Number(formData.price),
-        propertyType: formData.propertyType,
-        area: Number(formData.area),
-        bedrooms: formData.bedrooms
-          ? Number(formData.bedrooms)
-          : 0,
-        bathrooms: formData.bathrooms
-          ? Number(formData.bathrooms)
-          : 0,
-        description: formData.description,
-        amenities: formData.amenities
-          .split(',')
-          .map((item) => item.trim())
-          .filter((item) => item !== '')
-      };
+      const propertyData = new FormData();
 
-      await api.post('/properties', propertyData);
+      propertyData.append(
+        'title',
+        formData.title
+      );
+
+      propertyData.append(
+        'location',
+        formData.location
+      );
+
+      propertyData.append(
+        'price',
+        Number(formData.price)
+      );
+
+      propertyData.append(
+        'propertyType',
+        formData.propertyType
+      );
+
+      propertyData.append(
+        'area',
+        Number(formData.area)
+      );
+
+      propertyData.append(
+        'bedrooms',
+        formData.bedrooms
+          ? Number(formData.bedrooms)
+          : 0
+      );
+
+      propertyData.append(
+        'bathrooms',
+        formData.bathrooms
+          ? Number(formData.bathrooms)
+          : 0
+      );
+
+      propertyData.append(
+        'description',
+        formData.description
+      );
+
+      const amenities = formData.amenities
+        .split(',')
+        .map((item) => item.trim())
+        .filter((item) => item !== '');
+
+      propertyData.append(
+        'amenities',
+        JSON.stringify(amenities)
+      );
+
+      images.forEach((image) => {
+        propertyData.append('images', image);
+      });
+
+      await api.post(
+        '/properties',
+        propertyData
+      );
 
       setSuccess(
         '✓ Property submitted successfully. Waiting for admin approval.'
@@ -75,14 +182,15 @@ function AddProperty() {
         amenities: ''
       });
 
+      setImages([]);
+
       setTimeout(() => {
         navigate('/seller');
       }, 3000);
-
     } catch (error) {
       setError(
         error.response?.data?.message ||
-        'Unable to create property.'
+          'Unable to create property.'
       );
     } finally {
       setLoading(false);
@@ -91,9 +199,7 @@ function AddProperty() {
 
   return (
     <main className="add-property-page">
-
       <section className="add-property-header">
-
         <span>
           SELLER / NEW LISTING
         </span>
@@ -108,18 +214,14 @@ function AddProperty() {
           Add your property to PropMart and
           let buyers discover their next space.
         </p>
-
       </section>
 
       <section className="add-property-content">
-
         <form
           className="add-property-form"
           onSubmit={handleSubmit}
         >
-
           <div className="add-property-form-heading">
-
             <span>
               PROPERTY INFORMATION
             </span>
@@ -127,7 +229,6 @@ function AddProperty() {
             <h2>
               Tell us about the property.
             </h2>
-
           </div>
 
           {error && (
@@ -147,7 +248,6 @@ function AddProperty() {
           )}
 
           <div className="add-property-grid">
-
             <div className="form-group add-property-full">
               <label htmlFor="title">
                 Property title
@@ -299,6 +399,59 @@ function AddProperty() {
             </div>
 
             <div className="form-group add-property-full">
+              <label htmlFor="images">
+                Property images
+              </label>
+
+              <input
+                id="images"
+                name="images"
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                multiple
+                onChange={handleImageChange}
+                disabled={images.length >= 5}
+              />
+
+              <small>
+                Upload up to 5 images. JPG, PNG or WEBP.
+                Maximum 5 MB each.
+              </small>
+
+              {images.length > 0 && (
+                <div className="property-image-preview-grid">
+                  {images.map((image, index) => (
+                    <div
+                      className="property-image-preview"
+                      key={`${image.name}-${index}`}
+                    >
+                      <img
+                        src={URL.createObjectURL(image)}
+                        alt={`Property preview ${index + 1}`}
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="property-image-remove"
+                      >
+                        ×
+                      </button>
+
+                      <span>
+                        Image {index + 1}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="property-image-count">
+                {images.length} / 5 images selected
+              </div>
+            </div>
+
+            <div className="form-group add-property-full">
               <label htmlFor="description">
                 Description
               </label>
@@ -312,11 +465,9 @@ function AddProperty() {
                 onChange={handleChange}
               />
             </div>
-
           </div>
 
           <div className="add-property-footer">
-
             <p>
               Your listing will be reviewed by an admin
               before it becomes publicly visible.
@@ -331,21 +482,15 @@ function AddProperty() {
                 ? 'Submitting...'
                 : success
                   ? 'Submitted ✓'
-                  : 'Submit property'
-              }
+                  : 'Submit property'}
 
               {!loading && !success && (
                 <span>↗</span>
               )}
-
             </button>
-
           </div>
-
         </form>
-
       </section>
-
     </main>
   );
 }

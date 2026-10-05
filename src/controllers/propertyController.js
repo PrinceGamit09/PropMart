@@ -1,4 +1,37 @@
 const Property = require('../models/Property');
+const cloudinary = require('../config/cloudinary');
+
+const uploadImageToCloudinary = (file) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'propmart/properties',
+        resource_type: 'image'
+      },
+      (error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(result.secure_url);
+        }
+      }
+    );
+
+    uploadStream.end(file.buffer);
+  });
+};
+
+const uploadPropertyImages = async (files) => {
+  if (!files || files.length === 0) {
+    return [];
+  }
+
+  const imageUrls = await Promise.all(
+    files.map((file) => uploadImageToCloudinary(file))
+  );
+
+  return imageUrls;
+};
 
 const createProperty = async (req, res) => {
   try {
@@ -11,18 +44,30 @@ const createProperty = async (req, res) => {
       bedrooms,
       bathrooms,
       description,
-      amenities,
-      images
+      amenities
     } = req.body;
 
-    // Check required fields
     if (!title || !location || !price || !area || !propertyType) {
       return res.status(400).json({
         message: 'Title, location, price, area and property type are required'
       });
     }
 
-    // Create property
+    const imageUrls = await uploadPropertyImages(req.files);
+
+    let parsedAmenities = amenities;
+
+    if (typeof amenities === 'string') {
+      try {
+        parsedAmenities = JSON.parse(amenities);
+      } catch {
+        parsedAmenities = amenities
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+    }
+
     const property = await Property.create({
       title,
       location,
@@ -32,8 +77,8 @@ const createProperty = async (req, res) => {
       bedrooms,
       bathrooms,
       description,
-      amenities,
-      images,
+      amenities: parsedAmenities,
+      images: imageUrls,
       owner: req.user.id
     });
 
@@ -41,7 +86,6 @@ const createProperty = async (req, res) => {
       message: 'Property created successfully',
       property
     });
-
   } catch (error) {
     res.status(500).json({
       message: 'Server error',
@@ -49,7 +93,6 @@ const createProperty = async (req, res) => {
     });
   }
 };
-
 
 const getProperties = async (req, res) => {
   try {
@@ -67,7 +110,6 @@ const getProperties = async (req, res) => {
       status: 'Approved'
     };
 
-    // Location filter
     if (location) {
       filter.location = {
         $regex: location,
@@ -75,12 +117,10 @@ const getProperties = async (req, res) => {
       };
     }
 
-    // Property type filter
     if (propertyType) {
       filter.propertyType = propertyType;
     }
 
-    // Price filters
     if (minPrice || maxPrice) {
       filter.price = {};
 
@@ -93,12 +133,10 @@ const getProperties = async (req, res) => {
       }
     }
 
-    // Bedrooms filter
     if (bedrooms) {
       filter.bedrooms = Number(bedrooms);
     }
 
-    // Area filters
     if (minArea || maxArea) {
       filter.area = {};
 
@@ -117,7 +155,6 @@ const getProperties = async (req, res) => {
       message: 'Properties fetched successfully',
       properties
     });
-
   } catch (error) {
     res.status(500).json({
       message: 'Server error',
@@ -125,7 +162,6 @@ const getProperties = async (req, res) => {
     });
   }
 };
-
 
 const getPropertyById = async (req, res) => {
   try {
@@ -141,7 +177,6 @@ const getPropertyById = async (req, res) => {
       message: 'Property fetched successfully',
       property
     });
-
   } catch (error) {
     res.status(500).json({
       message: 'Server error',
@@ -149,7 +184,6 @@ const getPropertyById = async (req, res) => {
     });
   }
 };
-
 
 const updateProperty = async (req, res) => {
   try {
@@ -161,16 +195,39 @@ const updateProperty = async (req, res) => {
       });
     }
 
-    // Check if logged-in user is the owner
     if (property.owner.toString() !== req.user.id) {
       return res.status(403).json({
         message: 'You are not authorized to update this property'
       });
     }
 
+    const updateData = {
+      ...req.body
+    };
+
+    if (req.files && req.files.length > 0) {
+      const newImageUrls = await uploadPropertyImages(req.files);
+
+      updateData.images = [
+        ...(property.images || []),
+        ...newImageUrls
+      ];
+    }
+
+    if (typeof updateData.amenities === 'string') {
+      try {
+        updateData.amenities = JSON.parse(updateData.amenities);
+      } catch {
+        updateData.amenities = updateData.amenities
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+    }
+
     const updatedProperty = await Property.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       {
         new: true,
         runValidators: true
@@ -181,7 +238,6 @@ const updateProperty = async (req, res) => {
       message: 'Property updated successfully',
       property: updatedProperty
     });
-
   } catch (error) {
     res.status(500).json({
       message: 'Server error',
@@ -189,7 +245,6 @@ const updateProperty = async (req, res) => {
     });
   }
 };
-
 
 const deleteProperty = async (req, res) => {
   try {
@@ -201,7 +256,6 @@ const deleteProperty = async (req, res) => {
       });
     }
 
-    // Check if logged-in user is the owner
     if (property.owner.toString() !== req.user.id) {
       return res.status(403).json({
         message: 'You are not authorized to delete this property'
@@ -213,7 +267,6 @@ const deleteProperty = async (req, res) => {
     res.status(200).json({
       message: 'Property deleted successfully'
     });
-
   } catch (error) {
     res.status(500).json({
       message: 'Server error',
@@ -221,7 +274,6 @@ const deleteProperty = async (req, res) => {
     });
   }
 };
-
 
 module.exports = {
   createProperty,
