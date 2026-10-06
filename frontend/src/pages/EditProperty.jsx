@@ -18,8 +18,13 @@ function EditProperty() {
     amenities: ''
   });
 
+  const [currentImage, setCurrentImage] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -42,19 +47,29 @@ function EditProperty() {
           location: property.location || '',
           price: property.price || '',
           propertyType:
-            property.propertyType || 'Apartment',
+            property.propertyType ||
+            'Apartment',
           area: property.area || '',
           bedrooms: property.bedrooms || '',
           bathrooms: property.bathrooms || '',
-          description: property.description || '',
-          amenities: Array.isArray(property.amenities)
-            ? property.amenities.join(', ')
-            : ''
+          description:
+            property.description || '',
+          amenities:
+            Array.isArray(property.amenities)
+              ? property.amenities.join(', ')
+              : ''
         });
+
+        /*
+         * Store the existing property image.
+         */
+        setCurrentImage(
+          property.images?.[0] || ''
+        );
       } catch (error) {
         setError(
           error.response?.data?.message ||
-          'Unable to load property.'
+            'Unable to load property.'
         );
       } finally {
         setLoading(false);
@@ -64,13 +79,73 @@ function EditProperty() {
     fetchProperty();
   }, [id]);
 
+  /*
+   * Clean up preview URL when component
+   * is unmounted or preview changes.
+   */
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
   const handleChange = (event) => {
-    const { name, value } = event.target;
+    const {
+      name,
+      value
+    } = event.target;
 
     setFormData({
       ...formData,
       [name]: value
     });
+  };
+
+  const handleImageChange = (event) => {
+    const file =
+      event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    /*
+     * Only allow image files.
+     */
+    if (!file.type.startsWith('image/')) {
+      setError(
+        'Please select a valid image file.'
+      );
+
+      event.target.value = '';
+      return;
+    }
+
+    /*
+     * Optional size limit:
+     * 5 MB
+     */
+    if (file.size > 5 * 1024 * 1024) {
+      setError(
+        'Image size must be less than 5 MB.'
+      );
+
+      event.target.value = '';
+      return;
+    }
+
+    setError('');
+    setSelectedImage(file);
+
+    /*
+     * Create local preview.
+     */
+    const previewUrl =
+      URL.createObjectURL(file);
+
+    setImagePreview(previewUrl);
   };
 
   const handleSubmit = async (event) => {
@@ -81,24 +156,80 @@ function EditProperty() {
     setSaving(true);
 
     try {
-      const propertyData = {
-        title: formData.title,
-        location: formData.location,
-        price: Number(formData.price),
-        propertyType: formData.propertyType,
-        area: Number(formData.area),
-        bedrooms: formData.bedrooms
+      /*
+       * FormData is required because
+       * we are sending an image file.
+       */
+      const propertyData = new FormData();
+
+      propertyData.append(
+        'title',
+        formData.title
+      );
+
+      propertyData.append(
+        'location',
+        formData.location
+      );
+
+      propertyData.append(
+        'price',
+        Number(formData.price)
+      );
+
+      propertyData.append(
+        'propertyType',
+        formData.propertyType
+      );
+
+      propertyData.append(
+        'area',
+        Number(formData.area)
+      );
+
+      propertyData.append(
+        'bedrooms',
+        formData.bedrooms
           ? Number(formData.bedrooms)
-          : 0,
-        bathrooms: formData.bathrooms
+          : 0
+      );
+
+      propertyData.append(
+        'bathrooms',
+        formData.bathrooms
           ? Number(formData.bathrooms)
-          : 0,
-        description: formData.description,
-        amenities: formData.amenities
-          .split(',')
-          .map((item) => item.trim())
-          .filter((item) => item !== '')
-      };
+          : 0
+      );
+
+      propertyData.append(
+        'description',
+        formData.description
+      );
+
+      propertyData.append(
+        'amenities',
+        JSON.stringify(
+          formData.amenities
+            .split(',')
+            .map((item) =>
+              item.trim()
+            )
+            .filter(
+              (item) => item !== ''
+            )
+        )
+      );
+
+      /*
+       * Only send an image when
+       * the user selected a new one.
+       */
+      if (selectedImage) {
+        propertyData.append(
+          'images',
+          selectedImage
+        );
+      }
 
       await api.put(
         `/properties/${id}`,
@@ -109,6 +240,10 @@ function EditProperty() {
         'Property updated successfully.'
       );
 
+      /*
+       * Give the user time to see
+       * the success message.
+       */
       setTimeout(() => {
         navigate('/seller');
       }, 1500);
@@ -116,7 +251,7 @@ function EditProperty() {
     } catch (error) {
       setError(
         error.response?.data?.message ||
-        'Unable to update property.'
+          'Unable to update property.'
       );
     } finally {
       setSaving(false);
@@ -191,6 +326,7 @@ function EditProperty() {
 
       </section>
 
+
       <section className="add-property-content">
 
         <form
@@ -210,22 +346,116 @@ function EditProperty() {
 
           </div>
 
+
           {error && (
             <div className="add-property-error">
               {error}
             </div>
           )}
 
+
           {success && (
             <div className="add-property-success">
+
               ✓ {success}
+
               <br />
 
               <small>
                 Redirecting to your seller dashboard...
               </small>
+
             </div>
           )}
+
+
+          {/* IMAGE SECTION */}
+
+          <div className="edit-property-image-section">
+
+            <div className="edit-property-image-heading">
+
+              <div>
+                <span>
+                  PROPERTY IMAGE
+                </span>
+
+                <h3>
+                  Update your listing image.
+                </h3>
+              </div>
+
+            </div>
+
+
+            <div className="edit-property-image-wrapper">
+
+              <div className="edit-property-image-preview">
+
+                {(imagePreview ||
+                  currentImage) ? (
+
+                  <img
+                    src={
+                      imagePreview ||
+                      currentImage
+                    }
+                    alt={formData.title}
+                  />
+
+                ) : (
+
+                  <div className="edit-property-image-placeholder">
+                    {formData.propertyType}
+                  </div>
+
+                )}
+
+              </div>
+
+
+              <div className="edit-property-image-controls">
+
+                <label
+                  htmlFor="propertyImage"
+                  className="edit-property-image-button"
+                >
+                  {selectedImage
+                    ? 'Choose another image'
+                    : 'Change image'}
+
+                  <span>
+                    ↗
+                  </span>
+                </label>
+
+                <input
+                  id="propertyImage"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="edit-property-file-input"
+                />
+
+                <p>
+                  Upload a JPG, PNG or WEBP image.
+                  Maximum size: 5 MB.
+                </p>
+
+                {selectedImage && (
+                  <small className="edit-property-selected-file">
+                    Selected: {selectedImage.name}
+                  </small>
+                )}
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          {/* FORM */}
 
           <div className="add-property-grid">
 
@@ -247,6 +477,7 @@ function EditProperty() {
 
             </div>
 
+
             <div className="form-group add-property-full">
 
               <label htmlFor="location">
@@ -264,6 +495,7 @@ function EditProperty() {
               />
 
             </div>
+
 
             <div className="form-group">
 
@@ -283,6 +515,7 @@ function EditProperty() {
               />
 
             </div>
+
 
             <div className="form-group">
 
@@ -321,6 +554,7 @@ function EditProperty() {
 
             </div>
 
+
             <div className="form-group">
 
               <label htmlFor="area">
@@ -340,6 +574,7 @@ function EditProperty() {
 
             </div>
 
+
             <div className="form-group">
 
               <label htmlFor="bedrooms">
@@ -358,6 +593,7 @@ function EditProperty() {
 
             </div>
 
+
             <div className="form-group">
 
               <label htmlFor="bathrooms">
@@ -375,6 +611,7 @@ function EditProperty() {
               />
 
             </div>
+
 
             <div className="form-group add-property-full">
 
@@ -397,6 +634,7 @@ function EditProperty() {
 
             </div>
 
+
             <div className="form-group add-property-full">
 
               <label htmlFor="description">
@@ -416,6 +654,7 @@ function EditProperty() {
 
           </div>
 
+
           <div className="add-property-footer">
 
             <p>
@@ -426,19 +665,23 @@ function EditProperty() {
             <button
               type="submit"
               className="add-property-button"
-              disabled={saving || success}
+              disabled={
+                saving || success
+              }
             >
 
               {saving
                 ? 'Saving...'
                 : success
                   ? 'Updated ✓'
-                  : 'Save changes'
-              }
+                  : 'Save changes'}
 
-              {!saving && !success && (
-                <span>↗</span>
-              )}
+              {!saving &&
+                !success && (
+                  <span>
+                    ↗
+                  </span>
+                )}
 
             </button>
 

@@ -1,4 +1,43 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
+
 function Home() {
+  const navigate = useNavigate();
+
+  const [featuredProperty, setFeaturedProperty] = useState(null);
+  const [loadingFeatured, setLoadingFeatured] = useState(true);
+
+  useEffect(() => {
+    const fetchFeaturedProperty = async () => {
+      try {
+        const response = await api.get('/properties');
+
+        const properties =
+          response.data.properties || response.data;
+
+        const propertyWithImage = properties.find(
+          (property) =>
+            property.images &&
+            property.images.length > 0
+        );
+
+        setFeaturedProperty(propertyWithImage || null);
+      } catch (error) {
+        console.error(
+          'Unable to load featured property:',
+          error
+        );
+
+        setFeaturedProperty(null);
+      } finally {
+        setLoadingFeatured(false);
+      }
+    };
+
+    fetchFeaturedProperty();
+  }, []);
+
   return (
     <main className="home-page">
 
@@ -49,42 +88,90 @@ function Home() {
 
         </div>
 
-        {/* PROPERTY CARD */}
 
-        <div className="floating-property-card">
+        {/* DYNAMIC PROPERTY CARD */}
+
+        <div
+          className="floating-property-card"
+          onClick={() => {
+            if (featuredProperty?._id) {
+              navigate(
+                `/properties/${featuredProperty._id}`
+              );
+            }
+          }}
+          style={{
+            cursor: featuredProperty ? 'pointer' : 'default'
+          }}
+        >
 
           <div className="property-image">
+
+            {loadingFeatured ? (
+
+              <div className="property-image-fallback">
+                LOADING
+              </div>
+
+            ) : featuredProperty?.images?.[0] ? (
+
+              <img
+                src={featuredProperty.images[0]}
+                alt={featuredProperty.title}
+                className="featured-property-image"
+              />
+
+            ) : (
+
+              <div className="property-image-text">
+                MODERN
+                <br />
+                LIVING
+              </div>
+
+            )}
 
             <span className="property-badge">
               FEATURED
             </span>
 
-            <button className="heart-button">
+            <button
+              className="heart-button"
+              onClick={(event) => {
+                event.stopPropagation();
+              }}
+            >
               ♡
             </button>
 
-            <div className="property-image-text">
-              MODERN
-              <br />
-              LIVING
-            </div>
-
           </div>
+
 
           <div className="property-info">
 
             <div>
+
               <h3>
-                Skyline Residence
+                {featuredProperty?.title ||
+                  'Skyline Residence'}
               </h3>
 
               <p>
-                Vadodara · 2 BHK
+                {featuredProperty
+                  ? `${featuredProperty.location} · ${
+                      featuredProperty.bedrooms || 0
+                    } BHK`
+                  : 'Vadodara · 2 BHK'}
               </p>
+
             </div>
 
             <strong>
-              ₹40L
+              {featuredProperty
+                ? `₹${featuredProperty.price?.toLocaleString(
+                    'en-IN'
+                  )}`
+                : '₹40L'}
             </strong>
 
           </div>

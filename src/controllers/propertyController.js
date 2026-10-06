@@ -27,7 +27,9 @@ const uploadPropertyImages = async (files) => {
   }
 
   const imageUrls = await Promise.all(
-    files.map((file) => uploadImageToCloudinary(file))
+    files.map((file) =>
+      uploadImageToCloudinary(file)
+    )
   );
 
   return imageUrls;
@@ -47,13 +49,21 @@ const createProperty = async (req, res) => {
       amenities
     } = req.body;
 
-    if (!title || !location || !price || !area || !propertyType) {
+    if (
+      !title ||
+      !location ||
+      !price ||
+      !area ||
+      !propertyType
+    ) {
       return res.status(400).json({
-        message: 'Title, location, price, area and property type are required'
+        message:
+          'Title, location, price, area and property type are required'
       });
     }
 
-    const imageUrls = await uploadPropertyImages(req.files);
+    const imageUrls =
+      await uploadPropertyImages(req.files);
 
     let parsedAmenities = amenities;
 
@@ -165,7 +175,9 @@ const getProperties = async (req, res) => {
 
 const getPropertyById = async (req, res) => {
   try {
-    const property = await Property.findById(req.params.id);
+    const property = await Property.findById(
+      req.params.id
+    );
 
     if (!property) {
       return res.status(404).json({
@@ -187,7 +199,9 @@ const getPropertyById = async (req, res) => {
 
 const updateProperty = async (req, res) => {
   try {
-    const property = await Property.findById(req.params.id);
+    const property = await Property.findById(
+      req.params.id
+    );
 
     if (!property) {
       return res.status(404).json({
@@ -195,9 +209,12 @@ const updateProperty = async (req, res) => {
       });
     }
 
-    if (property.owner.toString() !== req.user.id) {
+    if (
+      property.owner.toString() !== req.user.id
+    ) {
       return res.status(403).json({
-        message: 'You are not authorized to update this property'
+        message:
+          'You are not authorized to update this property'
       });
     }
 
@@ -205,18 +222,14 @@ const updateProperty = async (req, res) => {
       ...req.body
     };
 
-    if (req.files && req.files.length > 0) {
-      const newImageUrls = await uploadPropertyImages(req.files);
-
-      updateData.images = [
-        ...(property.images || []),
-        ...newImageUrls
-      ];
-    }
-
+    /*
+     * Handle amenities when sent through FormData.
+     */
     if (typeof updateData.amenities === 'string') {
       try {
-        updateData.amenities = JSON.parse(updateData.amenities);
+        updateData.amenities = JSON.parse(
+          updateData.amenities
+        );
       } catch {
         updateData.amenities = updateData.amenities
           .split(',')
@@ -225,17 +238,36 @@ const updateProperty = async (req, res) => {
       }
     }
 
-    const updatedProperty = await Property.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      {
-        new: true,
-        runValidators: true
-      }
-    );
+    /*
+     * If a new image is uploaded,
+     * replace the existing images.
+     *
+     * If no new image is uploaded,
+     * keep the existing images.
+     */
+    if (
+      req.files &&
+      req.files.length > 0
+    ) {
+      const newImageUrls =
+        await uploadPropertyImages(req.files);
+
+      updateData.images = newImageUrls;
+    }
+
+    const updatedProperty =
+      await Property.findByIdAndUpdate(
+        req.params.id,
+        updateData,
+        {
+          new: true,
+          runValidators: true
+        }
+      );
 
     res.status(200).json({
-      message: 'Property updated successfully',
+      message:
+        'Property updated successfully',
       property: updatedProperty
     });
   } catch (error) {
@@ -248,7 +280,9 @@ const updateProperty = async (req, res) => {
 
 const deleteProperty = async (req, res) => {
   try {
-    const property = await Property.findById(req.params.id);
+    const property = await Property.findById(
+      req.params.id
+    );
 
     if (!property) {
       return res.status(404).json({
@@ -256,16 +290,22 @@ const deleteProperty = async (req, res) => {
       });
     }
 
-    if (property.owner.toString() !== req.user.id) {
+    if (
+      property.owner.toString() !== req.user.id
+    ) {
       return res.status(403).json({
-        message: 'You are not authorized to delete this property'
+        message:
+          'You are not authorized to delete this property'
       });
     }
 
-    await Property.findByIdAndDelete(req.params.id);
+    await Property.findByIdAndDelete(
+      req.params.id
+    );
 
     res.status(200).json({
-      message: 'Property deleted successfully'
+      message:
+        'Property deleted successfully'
     });
   } catch (error) {
     res.status(500).json({
