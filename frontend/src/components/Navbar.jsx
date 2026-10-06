@@ -32,6 +32,7 @@ function Navbar() {
       </Link>
 
       <div className="navbar-center">
+
         <Link to="/">
           Discover
         </Link>
@@ -39,6 +40,13 @@ function Navbar() {
         <Link to="/properties">
           Properties
         </Link>
+
+        {/* Favourites are available only to Buyers */}
+        {isLoggedIn && user?.role === 'Buyer' && (
+          <Link to="/wishlist">
+            Favourites
+          </Link>
+        )}
 
         {isLoggedIn && (
           <Link to={getDashboardPath()}>
@@ -49,9 +57,11 @@ function Navbar() {
         <Link to="/about">
           About
         </Link>
+
       </div>
 
       <div className="navbar-actions">
+
         {isLoggedIn ? (
           <>
             <span className="navbar-user">
@@ -82,6 +92,7 @@ function Navbar() {
             </Link>
           </>
         )}
+
       </div>
     </nav>
   );
